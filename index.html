@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <!-- MENCEGAH ZOOM PADA PERANGKAT MOBILE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ryzz AI - Asisten Pintar</title>
+    <!-- Font Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #0d0f12;
+            --bg-sidebar: #15181e;
+            --bg-card: #1c2029;
+            --bg-input: #232834;
+            --bg-code: #161b22;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f0f3f8;
+            --text-secondary: #8e95a5;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --stop-color: #ef4444;
+            --stop-hover: #dc2626;
+            --user-bubble: #2563eb;
+            --ai-bubble: #1c2029;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        /* MENCEGAH SELEKSI TEKS & HIGHLIGHT BIRU TAPPING */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+
+        html, body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR STYLES */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 4px;
+            margin-bottom: 20px;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .brand-text {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .btn-new-chat {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-new-chat:hover {
+            background-color: var(--bg-input);
+        }
+
+        .user-profile {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* MAIN CHAT AREA */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            height: 64px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background-color: rgba(13, 15, 18, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+
+        /* MODE SELECTOR DROPDOWN CUSTOM */
+        .custom-dropdown {
+            position: relative;
+        }
+
+        .dropdown-trigger {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .dropdown-trigger:hover {
+            background-color: var(--bg-input);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .dropdown-arrow {
+            font-size: 11px;
+            color: var(--text-secondary);
+            transition: transform 0.2s ease;
+        }
+
+        .custom-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+            padding: 6px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .custom-dropdown.open .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--bg-card);
+        }
+
+        .dropdown-item.active {
+            background-color: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .item-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .item-desc {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .messages-viewport {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            width: 100%;
+        }
+
+        .messages-viewport.fade-out {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .messages-viewport.fade-in {
+            animation: fadeIn 0.35s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SAMBUTAN UTAMA */
+        .welcome-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+            padding: 0 20px;
+            margin: auto;
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .welcome-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            max-width: 460px;
+            line-height: 1.6;
+        }
+
+        .message-row {
+            display: flex;
+            padding: 0 18%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .message-row { padding: 0 16px; }
+            .welcome-title { font-size: 26px; }
+        }
+
+        .message-row.ai { justify-content: flex-start; }
+        .message-row.user { justify-content: flex-end; }
+
+        .message-content {
+            max-width: 85%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-x: hidden;
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: var(--radius-lg);
+            font-size: 15px;
+            line-height: 1.6;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            position: relative;
+        }
+
+        .message-row.ai .message-bubble {
+            background-color: var(--ai-bubble);
+            border: 1px solid var(--border-color);
+            border-top-left-radius: 4px;
+        }
+
+        .message-row.user .message-bubble {
+            background-color: var(--user-bubble);
+            color: #ffffff;
+            border-top-right-radius: 4px;
+        }
+
+        .message-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-action {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-card);
+        }
+
+        /* GAMBAR */
+        .image-card {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 100%;
+        }
+
+        .image-card img {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+            display: block;
+        }
+
+        .btn-download-img {
+            align-self: flex-start;
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-download-img:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        /* BLOK KODE */
+        .code-block-wrapper {
+            background-color: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin: 10px 0;
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 6px 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .btn-copy-code {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .btn-copy-code:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .code-block-wrapper pre {
+            padding: 12px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13.5px;
+            color: #e6edf3;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* INPUT AREA */
+        .input-wrapper {
+            padding: 0 18% 24px 18%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+            .input-wrapper { padding: 0 16px 16px 16px; }
+        }
+
+        .input-box {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 8px 12px 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 15px;
+            resize: none;
+            max-height: 150px;
+            min-height: 24px;
+            line-height: 24px;
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
+
+        .btn-send {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-send:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.05);
+        }
+
+        /* TOMBOL MEMUDAR SAAT HABIS TOKEN */
+        .btn-send.limit-reached {
+            opacity: 0.35 !important;
+            cursor: not-allowed !important;
+            background-color: #4b5563 !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn-send.stop-mode {
+            background-color: var(--stop-color);
+        }
+
+        .btn-send.stop-mode:hover {
+            background-color: var(--stop-hover);
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-primary);
+            background-color: var(--bg-card);
+        }
+
+        .disclaimer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        /* NOTIFIKASI FLOATING (TOAST) */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-30px);
+            background-color: #ef4444;
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: var(--radius-md);
+            font-size: 13.5px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            max-width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* TYPING DOTS */
+        .typing-dots { display: flex; gap: 4px; padding: 4px 0; }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: pulse 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NOTIFIKASI TOAST -->
+    <div id="toastNotif" class="toast-notification">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Rate limit API sedang tercapai. Ryzz AI akan menyesuaikan waktu coba lagi otomatis.</span>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-robot"></i></div>
+            <span class="brand-text">Ryzz AI</span>
+        </div>
+
+        <button class="btn-new-chat" id="btnNewChat">
+            <i class="fa-solid fa-plus"></i>
+            <span>Percakapan Baru</span>
+        </button>
+
+        <div class="user-profile">
+            <div class="avatar">U</div>
+            <div class="user-info">
+                <span class="user-name" style="font-size: 14px; font-weight: 600;">Pengguna Pro</span>
+                <span style="font-size: 12px; color: var(--text-secondary);">by Fathur Rizam</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CHAT AREA -->
+    <main class="chat-container">
+        <header class="chat-header">
+            <!-- MODE SELECTOR DROPDOWN CUSTOM -->
+            <div class="custom-dropdown" id="modeDropdown">
+                <button class="dropdown-trigger" id="dropdownTrigger">
+                    <span id="selectedModeText">Mode Biasa</span>
+                    <i class="fa-solid fa-chevron-down dropdown-arrow"></i>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item active" data-value="biasa">
+                        <span class="item-title">Mode Biasa</span>
+                        <span class="item-desc">Jawaban umum, santai & pembuat gambar</span>
+                    </div>
+                    <div class="dropdown-item" data-value="coding">
+                        <span class="item-title">Mode Coding</span>
+                        <span class="item-desc">Pakar koding, algoritma & software</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn-icon" id="btnHeaderNewChat" title="Percakapan Baru">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span style="font-size: 13px; font-weight: 600;">Chat Baru</span>
+                </button>
+            </div>
+        </header>
+
+        <section class="messages-viewport" id="chatViewport">
+            <!-- SAMBUTAN UTAMA -->
+            <div class="welcome-container" id="welcomeContainer">
+                <h1 class="welcome-title">Halo, Ada yang bisa Ryzz AI bantu?</h1>
+                <p class="welcome-subtitle">Saya adalah asisten AI buatan Fathur Rizam. Tanyakan ide kreatif, minta foto/gambar, atau alihkan ke Mode Coding untuk membantu proyek koding Anda.</p>
+            </div>
+        </section>
+
+        <div class="input-wrapper">
+            <div class="input-box">
+                <textarea class="chat-input" id="userInput" rows="1" placeholder="Tanyakan apa saja pada Ryzz AI..."></textarea>
+                <button class="btn-send" id="btnSend" title="Kirim Pesan"><i class="fa-solid fa-arrow-up"></i></button>
+            </div>
+            <div class="disclaimer">AI ini dilindungi oleh Ryzz Cyber</div>
+        </div>
+    </main>
+
+    <!-- JAVASCRIPT INTEGRATION -->
+    <script>
+        const chatViewport = document.getElementById('chatViewport');
+        const userInput = document.getElementById('userInput');
+        const btnSend = document.getElementById('btnSend');
+        const btnNewChat = document.getElementById('btnNewChat');
+        const btnHeaderNewChat = document.getElementById('btnHeaderNewChat');
+        const toastNotif = document.getElementById('toastNotif');
+
+        // Dropdown Elements
+        const modeDropdown = document.getElementById('modeDropdown');
+        const dropdownTrigger = document.getElementById('dropdownTrigger');
+        const selectedModeText = document.getElementById('selectedModeText');
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+
+        // 🔑 GROQ CONFIG — Ryzz AI SUPER MAXIMAL v2
+        // Catatan: key frontend tetap terlihat di browser. Untuk deployment publik,
+        // pindahkan key ke backend/proxy agar tidak bisa dicuri dari DevTools.
+        const GROQ_API_KEY = "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";
+
+        // Model utama + fallback. Sengaja TIDAK memakai groq/compound agar Ryzz AI
+        // tidak lagi bergantung pada model internal Compound yang bisa deprecated/blocked.
+        const GROQ_PRIMARY_MODEL = "openai/gpt-oss-120b";
+        const GROQ_FALLBACK_MODELS = [
+            "openai/gpt-oss-20b"
+        ];
+
+        // 🌐 REAL-TIME WEB SEARCH
+        const REALTIME_WEB_ENABLED = true;
+
+        // PROMPT MODE BIASA
+        const SYSTEM_PROMPT_BIASA = `Anda adalah Ryzz AI (Mode Biasa), diciptakan oleh Fathur Rizam.
+ATURAN UTAMA:
+1. GAYA JAWABAN: MODE GEN Z SUPER MAXIMAL.
+   - Prioritas utama: terdengar seperti manusia Indonesia Gen Z yang lagi chat beneran, bukan chatbot/formal/robot.
+   - Langsung ke inti. Hindari pembukaan robotik seperti "Tentu", "Baik", "Dengan senang hati", "Berikut adalah", atau "Saya akan membantu Anda" kalau tidak diperlukan.
+   - Gunakan bahasa chat Gen Z Indonesia secara aktif dan natural: "gue/gw", "lu/lo", "bro", "sis", "anjir", "buset", "gila", "parah", "wkwk", "wkwkwk", "😭", "💀", "😂", "🔥", "fix", "valid", "relate", "real", "ngl", "fr", "literally", "btw", "kek", "kayak", "gak/ga/nggak", "udah/udh", "kalo", "gmn", "yg", "bgt", "emang", "bakal", "pengen", "mager", "gas", "gaskeun", "sabi", "satset", "auto", "spill", "skip", "aman", "cakep", dan slang lain yang relevan.
+   - Singkatan chat boleh dipakai secara natural: "yg", "gak/ga", "kalo", "udah/udh", "bgt", "gmn", "dgn", "krn". Jangan sampai mengurangi keterbacaan.
+   - Boleh lowercase saat ngobrol santai agar terasa seperti chat. Tetap gunakan kapitalisasi yang jelas untuk nama, kode, angka, dan hal penting.
+   - Ikuti vibe pengguna. Kalau user santai/gaul, balas dengan energi yang sama. Kalau user serius, tetap santai tapi lebih kalem.
+   - Boleh memakai reaction seperti "wkwk", "😭", "💀", "😂", "🔥", "nah", "anjir", "buset", "gila sih", "valid banget", "fix", dan humor ringan jika konteksnya cocok.
+   - Jangan terdengar seperti customer service, guru kaku, dokumentasi resmi, atau AI robot. Hindari frasa seperti "Apakah ada yang dapat saya bantu?", "Semoga membantu", atau "Silakan beri tahu saya..." kecuali benar-benar diperlukan.
+   - Jangan setiap kalimat dipenuhi slang. Variasikan ritme supaya tetap terasa manusiawi dan nggak cringe.
+   - Untuk topik serius, sensitif, teknis, atau coding, tetap akurat dan jelas. Jangan mengubah fakta, angka, kode, syntax, nama produk, atau istilah teknis demi gaya gaul.
+   - Jangan menjelaskan proses internal AI, tool, model, pencarian web, atau asal informasi kecuali user secara eksplisit meminta.
+   - Jangan menampilkan sumber, URL sumber, citation marker, nomor referensi, atau bagian "Sources/Sumber" kecuali user secara eksplisit meminta.
+   - Jawaban harus langsung ke inti dan nggak bertele-tele.
+2. PENCIPTA: Jika ditanya pembuat/pencipta Anda, jawab: "Saya diciptakan oleh Fathur Rizam."
+3. ATURAN PENETAPAN TOPIK (KODING/KOMPUTER):
+   - Mode Biasa TIDAK melayani pertanyaan mendalam tentang koding, pemrograman, script, pembuatan software, atau teknis komputer berat.
+   - Jika pengguna bertanya tentang koding/komputer/pemrograman, jawablah secara singkat lalu wajib sarankan dan arahkan pengguna untuk beralih ke 'Mode Coding' di pojok kiri atas untuk pembahasan yang lebih mendalam.
+4. PEMBUATAN GAMBAR: Jika pengguna meminta gambar/foto/logo/poster, WAJIB membuat gambar yang sedekat mungkin dengan permintaan pengguna. Jangan hanya menerjemahkan permintaan secara singkat. Susun prompt gambar bahasa Inggris yang sangat detail dan spesifik, tetapi JANGAN mengubah fakta, objek, jumlah orang, nama, tulisan, warna, pose, pakaian, komposisi, ukuran, rasio, atau detail penting yang diminta pengguna.
+   - Pertahankan SEMUA detail penting dari permintaan pengguna.
+   - Jika pengguna meminta tulisan pada gambar, tuliskan teks tersebut PERSIS dan jangan menggantinya dengan teks lain.
+   - Jelaskan subjek utama, latar, pencahayaan, sudut kamera, komposisi, material, ekspresi, warna, dan kualitas visual hanya jika relevan dengan permintaan.
+   - Untuk poster/desain, prioritaskan layout yang bersih, profesional, realistis, dan mudah dibaca.
+   - Jangan menambahkan objek, orang, logo, tulisan, watermark, atau elemen yang tidak diminta.
+   - Gunakan kualitas tinggi, detail tajam, realistic/high fidelity bila sesuai dengan permintaan.
+   - Tambahkan negative prompt internal seperti: blurry, low quality, distorted anatomy, extra fingers, duplicate objects, unwanted text, watermark, cropped subject, malformed face — tetapi jangan menampilkan negative prompt kepada pengguna.
+   - Gunakan format Markdown berikut dan URL-encode prompt dengan encodeURIComponent:
+   ![Deskripsi](https://image.pollinations.ai/prompt/ENCODED_DETAILED_ENGLISH_PROMPT?width=1024&height=1024&nologo=true&seed=RANDOM_NUM&model=flux)
+   Pilih width/height yang sesuai dengan rasio yang diminta pengguna (1:1, 3:4, 4:3, 16:9, 9:16, dll.). Jika rasio tidak disebutkan, gunakan 1024x1024.
+   Jawaban untuk permintaan gambar harus langsung memberikan gambar tanpa penjelasan panjang.
+6. INFORMASI TERKINI: Untuk pertanyaan yang membutuhkan informasi terbaru (berita, tren, teknologi, olahraga, harga, rilis produk, perkembangan AI, atau aktivitas publik di internet/sosial media), gunakan akses web real-time yang tersedia. Jangan mengarang informasi terbaru. Jika hasil web tidak cukup, katakan dengan jujur bahwa informasi belum dapat diverifikasi.
+7. SUMBER & PROSES INTERNAL: Jangan menampilkan daftar sumber, URL sumber, citation marker, nomor referensi seperti [1], [2], bagian "Sources/Sumber", atau penjelasan tentang bagaimana informasi diperoleh. Gunakan informasi web bila diperlukan, tetapi langsung berikan jawabannya secara natural tanpa membahas sumber maupun proses internal.`;
+
+        // PROMPT MODE CODING
+        const SYSTEM_PROMPT_CODING = `Anda adalah Ryzz AI (Mode Coding), diciptakan oleh Fathur Rizam.
+ATURAN UTAMA:
+1. FOKUS KHUSUS: Mode ini khusus melayani koding, algoritma, software engineering, analisis error, dan teknis komputer mendalam.
+   - Gaya komunikasi tetap Gen Z SUPER MAXIMAL: santai, spontan, dan berasa chat anak muda sekarang, bukan bahasa dokumentasi robot.
+   - Boleh memakai slang, singkatan chat, reaction, dan humor ringan secara natural. Ikuti vibe user.
+   - Kode, syntax, nama fungsi, nama variabel, command, angka, error message, dan istilah teknis harus tetap persis dan akurat.
+2. FORMAT KODE: Selalu gunakan blok kode Markdown (\`\`\`bahasa ... \`\`\`) agar rapi dan mudah disalin.
+3. PENJELASAN: Singkat, jelas, efisien, dan langsung membahas solusi teknisnya.
+4. PENCIPTA: Jika ditanya pembuat/pencipta Anda, jawab: "Saya diciptakan oleh Fathur Rizam."
+5. BILA BERTANYA HAL UMUM: Jika pengguna bertanya hal umum non-koding, jawab singkat lalu ingatkan santai bahwa ini adalah Mode Coding dan mereka bisa pindah ke 'Mode Biasa' di pojok kiri atas untuk obrolan umum.
+6. INFORMASI TERKINI: Untuk pertanyaan koding yang menyangkut versi library/framework terbaru, dokumentasi, rilis, bug, API, keamanan, atau informasi teknis yang dapat berubah, gunakan akses web real-time yang tersedia. Jangan mengarang versi atau dokumentasi terbaru.
+7. SUMBER & PROSES INTERNAL: Jangan menampilkan daftar sumber, URL sumber, citation marker, nomor referensi seperti [1], [2], bagian "Sources/Sumber", atau penjelasan tentang bagaimana informasi diperoleh. Gunakan informasi web bila diperlukan, tetapi langsung berikan jawabannya secara natural tanpa membahas sumber maupun proses internal.`;
+
+        // State Global
+        let activeMode = 'biasa';
+        let chatHistory = [];
+        let isGenerating = false;
+        let isLimitReached = false;
+        let limitResetTimer = null;
+        let limitResetAt = 0;
+        let currentAbortController = null;
+        let currentTypingTimeout = null;
+        let currentTypingId = null;
+        let toastTimeout = null;
+
+        function showLimitToast(message = "Batas API sedang tercapai. Ryzz AI akan mencoba lagi otomatis.") {
+            const toastText = toastNotif.querySelector('span');
+            if (toastText) toastText.textContent = message;
+            toastNotif.classList.add('show');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toastNotif.classList.remove('show'), 4500);
+        }
+
+        function clearLimitReachedState() {
+            isLimitReached = false;
+            limitResetAt = 0;
+            if (limitResetTimer) clearInterval(limitResetTimer);
+            limitResetTimer = null;
+            btnSend.classList.remove('limit-reached', 'stop-mode');
+            btnSend.innerHTML = `<i class="fa-solid fa-arrow-up"></i>`;
+            btnSend.title = "Kirim Pesan";
+            userInput.placeholder = "Tanyakan apa saja pada Ryzz AI...";
+        }
+
+        function formatRetryTime(seconds) {
+            const total = Math.max(1, Math.ceil(seconds));
+            if (total < 60) return `${total} detik`;
+            const minutes = Math.ceil(total / 60);
+            if (minutes < 60) return `${minutes} menit`;
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return mins ? `${hours} jam ${mins} menit` : `${hours} jam`;
+        }
+
+        function enableLimitReachedState(retryAfterSeconds = 0) {
+            if (limitResetTimer) clearInterval(limitResetTimer);
+            const safeSeconds = Math.max(0, Number(retryAfterSeconds) || 0);
+            if (!safeSeconds) return clearLimitReachedState();
+
+            isLimitReached = true;
+            limitResetAt = Date.now() + safeSeconds * 1000;
+            btnSend.classList.add('limit-reached');
+            btnSend.classList.remove('stop-mode');
+            btnSend.innerHTML = `<i class="fa-solid fa-clock"></i>`;
+            btnSend.title = "Rate limit sementara";
+
+            const updateCountdown = () => {
+                const remaining = Math.max(0, Math.ceil((limitResetAt - Date.now()) / 1000));
+                if (!remaining) {
+                    clearLimitReachedState();
+                    showLimitToast("Limit sementara sudah selesai");
+                    return;
+                }
+                userInput.placeholder = `Ryzz Cyber Sedang Mengunci, Coba lagi dalam ${formatRetryTime(remaining)}...`;
+            };
+            updateCountdown();
+            limitResetTimer = setInterval(updateCountdown, 1000);
+        }
+
+        dropdownTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            modeDropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!modeDropdown.contains(e.target)) {
+                modeDropdown.classList.remove('open');
+            }
+        });
+
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', () => {
+                dropdownItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                activeMode = item.getAttribute('data-value');
+                if (activeMode === 'biasa') {
+                    selectedModeText.innerHTML = 'Mode Biasa';
+                } else {
+                    selectedModeText.innerHTML = 'Mode Coding';
+                }
+
+                modeDropdown.classList.remove('open');
+                resetChat();
+            });
+        });
+
+        function initChatHistory() {
+            const prompt = activeMode === 'coding' ? SYSTEM_PROMPT_CODING : SYSTEM_PROMPT_BIASA;
+            chatHistory = [{ role: "system", content: prompt }];
+        }
+
+        initChatHistory();
+
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight < 150 ? this.scrollHeight : 150) + 'px';
+        });
+
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (isLimitReached) {
+                    showLimitToast();
+                    return;
+                }
+                if (!isGenerating) sendMessage();
+            }
+        });
+
+        btnSend.addEventListener('click', () => {
+            if (isLimitReached) {
+                showLimitToast();
+                return;
+            }
+
+            if (isGenerating) {
+                stopGeneration();
+            } else {
+                sendMessage();
+            }
+        });
+
+        function setGeneratingState(generating) {
+            if (isLimitReached) return;
+            isGenerating = generating;
+            if (generating) {
+                btnSend.classList.add('stop-mode');
+                btnSend.innerHTML = `<i class="fa-solid fa-square" style="font-size: 13px;"></i>`;
+                btnSend.title = "Hentikan Jeda Menjawab";
+            } else {
+                btnSend.classList.remove('stop-mode');
+                btnSend.innerHTML = `<i class="fa-solid fa-arrow-up"></i>`;
+                btnSend.title = "Kirim Pesan";
+            }
+        }
+
+        function stopGeneration() {
+            if (currentAbortController) {
+                currentAbortController.abort();
+                currentAbortController = null;
+            }
+
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+                currentTypingTimeout = null;
+            }
+
+            if (currentTypingId) {
+                removeTypingIndicator(currentTypingId);
+                currentTypingId = null;
+            }
+
+            setGeneratingState(false);
+        }
+
+        async function sendMessage() {
+            if (isLimitReached) {
+                showLimitToast();
+                return;
+            }
+
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            const welcomeContainer = document.getElementById('welcomeContainer');
+            if (welcomeContainer) {
+                welcomeContainer.remove();
+            }
+
+            appendMessage('user', text);
+            userInput.value = '';
+            userInput.style.height = 'auto';
+
+            chatHistory.push({ role: "user", content: text });
+
+            setGeneratingState(true);
+            currentTypingId = appendTypingIndicator();
+            scrollToBottom();
+
+            currentAbortController = new AbortController();
+
+            try {
+                const aiResponseText = await callGroqAPI(chatHistory, currentAbortController.signal);
+                
+                removeTypingIndicator(currentTypingId);
+                currentTypingId = null;
+                currentAbortController = null;
+
+                const cleanResponse = removeSourceReferences(aiResponseText);
+                appendAiMessageWithTypingEffect(cleanResponse);
+
+                chatHistory.push({ role: "assistant", content: cleanResponse });
+            } catch (error) {
+                removeTypingIndicator(currentTypingId);
+                currentTypingId = null;
+
+                if (error.name !== 'AbortError') {
+                    if (error.status === 429 || error.isRateLimit) {
+                        // HANYA 429 yang dianggap rate limit.
+                        // Tidak ada lagi asumsi "tunggu 24 jam".
+                        const retrySeconds =
+                            error.retryAfterSeconds ||
+                            error.resetRequestsSeconds ||
+                            60;
+
+                        enableLimitReachedState(retrySeconds);
+                        showLimitToast(
+                            `Limit sudah mencapai batas. Coba lagi dalam ${formatRetryTime(retrySeconds)}.`
+                        );
+                    } else if (error.status === 401 || error.isAuthError) {
+                        appendMessage(
+                            'ai',
+                            `🔐 **API Key Ditolak**\n\nKey tidak valid, sudah dicabut, atau tidak punya akses. Cek API key di konfigurasi Ryzz AI.`
+                        );
+                    } else if (error.status === 403 || error.isPermissionError) {
+                        appendMessage(
+                            'ai',
+                            `🚫 **Akses Model Ditolak**\n\nRyzz AI sudah mencoba model utama dan fallback yang tersedia, tetapi akses model masih dibatasi oleh organisasi/project Ryzz. Ini bukan batas 24 jam.\n\nModel terakhir: \`${error.model || "unknown"}\`\n\nJika muncul pesan "blocked at the organization level", buka pengaturan Limits Ryzz dan izinkan model tersebut.`
+                        );
+                    } else if (error.status === 413) {
+                        appendMessage(
+                            'ai',
+                            `📦 **Request Ryzz Terlalu Besar**\n\nRyzz AI sudah otomatis mengecilkan riwayat, mematikan web search, dan mencoba ulang. Kalau pesan ini masih muncul bahkan pada **Chat Baru**, kemungkinan ada batas request/API di sisi Ryzz, bukan riwayat chat.`
+                        );
+                    } else if (error.status >= 500) {
+                        appendMessage(
+                            'ai',
+                            `🛰️ **Server Ryzz Lagi Bermasalah**\n\nBukan limit 24 jam. Coba kirim lagi beberapa saat lagi.`
+                        );
+                    } else {
+                        appendMessage(
+                            'ai',
+                            `⚠️ **Terjadi Kesalahan Sistem**\n\n\`${error.message || "Gagal terhubung ke API"}\``
+                        );
+                    }
+                }
+
+                setGeneratingState(false);
+            }
+
+            scrollToBottom();
+        }
+
+        async function callGroqAPI(messages, signal) {
+            const endpoint = "https://api.groq.com/openai/v1/chat/completions";
+
+            // v3: request dibuat adaptif. Chat sederhana tidak lagi membawa tool web
+            // setiap kali, sehingga request jauh lebih ringan.
+            const MAX_HISTORY_MESSAGES = 10;
+            const MAX_MESSAGE_CHARS = 9000;
+            const MAX_TOTAL_CHARS = 30000;
+
+            function compactMessages(sourceMessages, limits = {}) {
+                const maxHistory = limits.maxHistory ?? MAX_HISTORY_MESSAGES;
+                const maxMessage = limits.maxMessage ?? MAX_MESSAGE_CHARS;
+                const maxTotal = limits.maxTotal ?? MAX_TOTAL_CHARS;
+                const maxSystem = limits.maxSystem ?? 9000;
+
+                if (!Array.isArray(sourceMessages) || sourceMessages.length === 0) {
+                    return sourceMessages;
+                }
+
+                const systemMessage = sourceMessages.find(m => m.role === "system");
+                const conversation = sourceMessages.filter(m => m.role !== "system");
+                const recent = conversation.slice(-maxHistory);
+                const compacted = [];
+
+                if (systemMessage) {
+                    compacted.push({
+                        role: "system",
+                        content: String(systemMessage.content || "").slice(0, maxSystem)
+                    });
+                }
+
+                for (const message of recent) {
+                    compacted.push({
+                        role: message.role,
+                        content: String(message.content || "").slice(-maxMessage)
+                    });
+                }
+
+                let total = 0;
+                const result = [];
+
+                for (const item of compacted) {
+                    const content = String(item.content || "");
+
+                    if (total + content.length > maxTotal) {
+                        if (item.role === "system") continue;
+
+                        const remaining = Math.max(600, maxTotal - total);
+                        if (remaining > 0) {
+                            result.push({
+                                role: item.role,
+                                content: content.slice(-remaining)
+                            });
+                        }
+                        break;
+                    }
+
+                    result.push(item);
+                    total += content.length;
+                }
+
+                return result;
+            }
+
+            function latestUserText(sourceMessages) {
+                return String(
+                    [...sourceMessages].reverse().find(m => m.role === "user")?.content || ""
+                );
+            }
+
+            // Web search hanya dipasang jika pertanyaan memang membutuhkan data terkini.
+            // Ini menghindari overhead tool pada "halo", coding biasa, chatting, dll.
+            function needsRealtimeWeb(text) {
+                const q = String(text || "").toLowerCase();
+
+                return /(\bterbaru\b|\bterkini\b|\bsaat ini\b|\bsekarang\b|\bhari ini\b|\bkemarin\b|\bbesok\b|\bminggu ini\b|\bbulan ini\b|\btahun ini\b|\blatest\b|\bcurrent\b|\btoday\b|\bnews\b|\bberita\b|\bharga\b|\bprice\b|\brilis\b|\brelease\b|\bupdate\b|\bversi terbaru\b|\bjadwal\b|\bskor\b|\bklasemen\b|\bcuaca\b|\bweather\b|\btrend\b|\btrending\b|\bviral\b|\bsiapa yang menang\b)/i.test(q);
+            }
+
+            function parseDuration(value) {
+                if (!value) return 0;
+                const raw = String(value).trim().toLowerCase();
+
+                if (/^\d+(?:\.\d+)?$/.test(raw)) return Number(raw);
+
+                let seconds = 0;
+                const hour = raw.match(/(\d+(?:\.\d+)?)h/);
+                const minute = raw.match(/(\d+(?:\.\d+)?)m/);
+                const second = raw.match(/(\d+(?:\.\d+)?)s/);
+
+                if (hour) seconds += Number(hour[1]) * 3600;
+                if (minute) seconds += Number(minute[1]) * 60;
+                if (second) seconds += Number(second[1]);
+
+                if (!seconds && !Number.isNaN(Date.parse(value))) {
+                    seconds = Math.max(0, (Date.parse(value) - Date.now()) / 1000);
+                }
+
+                return seconds;
+            }
+
+            function enrichError(error, response, data, model) {
+                error.status = response.status;
+                error.model = model;
+                error.code = data?.error?.code || "";
+                error.type = data?.error?.type || "";
+                error.retryAfterSeconds = parseDuration(response.headers.get("retry-after"));
+                error.resetRequestsSeconds = parseDuration(
+                    response.headers.get("x-ratelimit-reset-requests")
+                );
+                error.rateLimitRemainingRequests =
+                    response.headers.get("x-ratelimit-remaining-requests");
+                error.rateLimitRemainingTokens =
+                    response.headers.get("x-ratelimit-remaining-tokens");
+
+                error.isRateLimit = response.status === 429;
+                error.isAuthError = response.status === 401;
+                error.isPermissionError = response.status === 403;
+
+                const msg = String(error.message || "").toLowerCase();
+
+                error.isModelBlocked =
+                    response.status === 403 &&
+                    (
+                        msg.includes("model") &&
+                        (
+                            msg.includes("blocked") ||
+                            msg.includes("permission") ||
+                            msg.includes("organization") ||
+                            msg.includes("project")
+                        )
+                    );
+
+                error.isModelUnavailable =
+                    response.status === 404 ||
+                    (
+                        response.status === 400 &&
+                        msg.includes("model")
+                    );
+
+                error.isTooLarge =
+                    response.status === 413 ||
+                    msg.includes("request entity too large") ||
+                    msg.includes("entity too large") ||
+                    msg.includes("payload too large") ||
+                    msg.includes("request too large");
+
+                return error;
+            }
+
+            async function request(model, requestMessages, useWebSearch, maxCompletionTokens = 4096) {
+                const body = {
+                    model,
+                    messages: requestMessages,
+                    max_completion_tokens: maxCompletionTokens,
+                    temperature: 0.7
+                };
+
+                if (useWebSearch) {
+                    body.tools = [{ type: "browser_search" }];
+                    body.tool_choice = "auto";
+                }
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    signal,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${GROQ_API_KEY}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const rawText = await response.text();
+                let data = {};
+
+                try {
+                    data = rawText ? JSON.parse(rawText) : {};
+                } catch (_) {
+                    data = {};
+                }
+
+                if (!response.ok) {
+                    const apiErrorMessage =
+                        data.error?.message ||
+                        data.message ||
+                        `HTTP ${response.status}: ${response.statusText}`;
+
+                    throw enrichError(
+                        new Error(apiErrorMessage),
+                        response,
+                        data,
+                        model
+                    );
+                }
+
+                const answer = data.choices?.[0]?.message?.content;
+
+                if (!answer) {
+                    throw new Error("AI tidak mengembalikan jawaban.");
+                }
+
+                return answer;
+            }
+
+            const userText = latestUserText(messages);
+            const useWebSearch = REALTIME_WEB_ENABLED && needsRealtimeWeb(userText);
+
+            const modelsToTry = [
+                GROQ_PRIMARY_MODEL,
+                ...GROQ_FALLBACK_MODELS
+            ];
+
+            let lastError = null;
+
+            for (let modelIndex = 0; modelIndex < modelsToTry.length; modelIndex++) {
+                const model = modelsToTry[modelIndex];
+
+                try {
+                    // Percobaan normal: konteks ringkas + web hanya bila memang perlu.
+                    return await request(
+                        model,
+                        compactMessages(messages),
+                        useWebSearch,
+                        4096
+                    );
+                } catch (error) {
+                    lastError = error;
+
+                    if (error.name === "AbortError" ||
+                        error.isRateLimit ||
+                        error.isAuthError) {
+                        throw error;
+                    }
+
+                    // 413: jangan langsung menyerah. Kirim versi super-ringkas
+                    // dan matikan web tool pada retry agar body benar-benar minimal.
+                    if (error.isTooLarge) {
+                        try {
+                            return await request(
+                                model,
+                                compactMessages(messages, {
+                                    maxHistory: 4,
+                                    maxMessage: 4500,
+                                    maxTotal: 11000,
+                                    maxSystem: 5000
+                                }),
+                                false,
+                                2048
+                            );
+                        } catch (smallerError) {
+                            lastError = smallerError;
+
+                            if (smallerError.name === "AbortError" ||
+                                smallerError.isRateLimit ||
+                                smallerError.isAuthError) {
+                                throw smallerError;
+                            }
+                        }
+                    }
+
+                    // Model blocked/deprecated/unavailable atau request tetap gagal:
+                    // lanjut ke model fallback.
+                    const canFallback =
+                        error.isModelBlocked ||
+                        error.isModelUnavailable ||
+                        error.isTooLarge ||
+                        (lastError && lastError.isTooLarge);
+
+                    if (!canFallback || modelIndex === modelsToTry.length - 1) {
+                        throw lastError;
+                    }
+                }
+            }
+
+            throw lastError || new Error("Tidak ada model Ryzz yang tersedia.");
+        }
+        function removeSourceReferences(text) {
+            if (!text) return text;
+
+            let cleaned = String(text);
+
+            cleaned = cleaned.replace(
+                /(?:^|\n)\s*(?:#{1,6}\s*)?(?:sources?|sumber|referensi)\s*:?\s*\n[\s\S]*$/i,
+                ""
+            );
+
+            cleaned = cleaned.replace(/\s*\[(?:\d{1,3}(?:\s*,\s*\d{1,3})*|source\s*\d+)\]\s*/gi, " ");
+
+            cleaned = cleaned.replace(
+                /(^|[\s\n])https?:\/\/(?!image\.pollinations\.ai\/prompt\/)[^\s<]+/gi,
+                "$1"
+            );
+
+            return cleaned.replace(/[ \t]{2,}/g, " ").trim();
+        }
+
+        function appendMessage(sender, text) {
+            const messageRow = document.createElement('div');
+            messageRow.classList.add('message-row', sender);
+
+            const formattedContent = parseMarkdown(text);
+            const actionHTML = sender === 'ai' ? `
+                <div class="message-actions">
+                    <button class="btn-action" onclick="copyMessageText(this)">
+                        <i class="fa-regular fa-copy"></i> Salin
+                    </button>
+                </div>
+            ` : '';
+
+            messageRow.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">${formattedContent}</div>
+                    ${actionHTML}
+                </div>
+            `;
+
+            chatViewport.appendChild(messageRow);
+            scrollToBottom();
+        }
+
+        function appendAiMessageWithTypingEffect(fullText) {
+            const messageRow = document.createElement('div');
+            messageRow.classList.add('message-row', 'ai');
+
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+
+            const messageActions = document.createElement('div');
+            messageActions.classList.add('message-actions');
+            messageActions.innerHTML = `
+                <button class="btn-action" onclick="copyMessageText(this)">
+                    <i class="fa-regular fa-copy"></i> Salin
+                </button>
+            `;
+
+            messageContent.appendChild(messageBubble);
+            messageContent.appendChild(messageActions);
+            messageRow.appendChild(messageContent);
+            chatViewport.appendChild(messageRow);
+
+            typeWriterEffectAdaptive(messageBubble, fullText);
+        }
+
+        function typeWriterEffectAdaptive(element, fullText) {
+            let i = 0;
+            element.innerHTML = "";
+
+            const totalChars = fullText.length;
+            const speed = totalChars < 100 ? 10 : Math.max(3, Math.floor(1800 / totalChars));
+
+            function type() {
+                if (i <= fullText.length) {
+                    element.innerHTML = parseMarkdown(fullText.substring(0, i));
+                    scrollToBottom();
+                    i++;
+                    currentTypingTimeout = setTimeout(type, speed);
+                } else {
+                    currentTypingTimeout = null;
+                    setGeneratingState(false);
+                }
+            }
+
+            type();
+        }
+
+        function parseMarkdown(text) {
+            let safeText = escapeHTML(text);
+
+            const codeBlockRegex = /```(?:([a-zA-Z0-9]+)\n)?([\s\S]*?)```/g;
+            safeText = safeText.replace(codeBlockRegex, (match, lang, code) => {
+                const langName = lang ? lang.toUpperCase() : "KODE";
+                const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
+                return `
+                    <div class="code-block-wrapper">
+                        <div class="code-header">
+                            <span>${langName}</span>
+                            <button class="btn-copy-code" onclick="copyCode('${uniqueId}', this)">
+                                <i class="fa-regular fa-copy"></i> Salin Kode
+                            </button>
+                        </div>
+                        <pre><code id="${uniqueId}">${code.trim()}</code></pre>
+                    </div>
+                `;
+            });
+
+            const imgRegex = /!\[(.*?)\]\((.*?)\)/g;
+            safeText = safeText.replace(imgRegex, (match, alt, url) => {
+                let cleanUrl = url.replace(/&amp;/g, '&').trim();
+                cleanUrl = cleanUrl.replace(/\s+/g, '%20');
+                return `
+                    <div class="image-card">
+                        <img src="${cleanUrl}" alt="${alt}" loading="lazy" onload="scrollToBottom()" onerror="this.onerror=null; this.alt='Gagal memuat gambar.';" />
+                        <button class="btn-download-img" onclick="downloadImage('${cleanUrl}', this)">
+                            <i class="fa-solid fa-download"></i> Simpan Foto
+                        </button>
+                    </div>
+                `;
+            });
+
+            safeText = safeText.replace(/`([^`]+)`/g, '<code style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-family: monospace;">$1</code>');
+            safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            safeText = safeText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            safeText = safeText.replace(/\n/g, '<br>');
+
+            return safeText;
+        }
+
+        function copyMessageText(buttonBtn) {
+            const messageBubble = buttonBtn.closest('.message-content').querySelector('.message-bubble');
+            const clone = messageBubble.cloneNode(true);
+            
+            const elementsToRemove = clone.querySelectorAll('.image-card, .code-block-wrapper');
+            elementsToRemove.forEach(el => el.remove());
+
+            const textToCopy = clone.innerText.trim();
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                buttonBtn.innerHTML = `<i class="fa-solid fa-check" style="color:#10b981;"></i> Tersalin`;
+                setTimeout(() => {
+                    buttonBtn.innerHTML = `<i class="fa-regular fa-copy"></i> Salin`;
+                }, 2000);
+            });
+        }
+
+        function copyCode(elementId, buttonBtn) {
+            const codeElement = document.getElementById(elementId);
+            if (!codeElement) return;
+
+            navigator.clipboard.writeText(codeElement.innerText).then(() => {
+                buttonBtn.innerHTML = `<i class="fa-solid fa-check" style="color:#10b981;"></i> Tersalin`;
+                setTimeout(() => {
+                    buttonBtn.innerHTML = `<i class="fa-regular fa-copy"></i> Salin Kode`;
+                }, 2000);
+            });
+        }
+
+        async function downloadImage(imageUrl, buttonBtn) {
+            const originalHTML = buttonBtn.innerHTML;
+            buttonBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengunduh...`;
+
+            try {
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `RyzzAI-Photo-${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                buttonBtn.innerHTML = `<i class="fa-solid fa-check" style="color:#10b981;"></i> Tersimpan!`;
+            } catch (error) {
+                window.open(imageUrl, '_blank');
+                buttonBtn.innerHTML = `<i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Gambar`;
+            }
+
+            setTimeout(() => { buttonBtn.innerHTML = originalHTML; }, 3000);
+        }
+
+        function appendTypingIndicator() {
+            const id = 'typing-' + Date.now();
+            const typingRow = document.createElement('div');
+            typingRow.classList.add('message-row', 'ai');
+            typingRow.id = id;
+
+            typingRow.innerHTML = `
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="typing-dots">
+                            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            chatViewport.appendChild(typingRow);
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const element = document.getElementById(id);
+            if (element) element.remove();
+        }
+
+        function scrollToBottom() {
+            chatViewport.scrollTop = chatViewport.scrollHeight;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function resetChat() {
+            stopGeneration();
+            clearLimitReachedState();
+
+            chatViewport.classList.add('fade-out');
+
+            setTimeout(() => {
+                initChatHistory();
+                const modeTitle = activeMode === 'coding' ? 'Mode Coding Aktif' : 'Halo, Ada yang bisa Ryzz AI bantu?';
+                const modeDesc = activeMode === 'coding' 
+                    ? 'Mode ini khusus membantu koding, pembuatan program, algoritma, dan solusi teknis.' 
+                    : 'Saya adalah asisten AI buatan Fathur Rizam. Tanyakan ide kreatif, minta foto/gambar, atau alihkan ke Mode Coding untuk membantu proyek koding Anda.';
+
+                chatViewport.innerHTML = `
+                    <div class="welcome-container" id="welcomeContainer">
+                        <h1 class="welcome-title">${modeTitle}</h1>
+                        <p class="welcome-subtitle">${modeDesc}</p>
+                    </div>
+                `;
+
+                chatViewport.classList.remove('fade-out');
+                chatViewport.classList.add('fade-in');
+
+                setTimeout(() => {
+                    chatViewport.classList.remove('fade-in');
+                }, 350);
+            }, 300);
+        }
+
+        btnNewChat.addEventListener('click', resetChat);
+        btnHeaderNewChat.addEventListener('click', resetChat);
+    </script>
+</body>
+</html>
